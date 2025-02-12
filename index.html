@@ -1,0 +1,64 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transposition Gen by V. Janarthan</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Transposition Gen</h1>
+      <p class="author">by V. Janarthan</p>
+    </header>
+    
+    <nav class="tabs">
+      <button class="tab active" data-tab="minus-cyl">
+        <span>Minus Cylinder</span>
+      </button>
+      <button class="tab" data-tab="plus-cyl">
+        <span>Plus Cylinder</span>
+      </button>
+      <button class="tab" data-tab="spherical-equivalent">
+        <span>Spherical Equiv</span>
+      </button>
+      <button class="tab" data-tab="cross-cyl">
+        <span>Cross Cylinder</span>
+      </button>
+      <button class="tab" data-tab="toric">
+        <span>Toric Trans</span>
+      </button>
+    </nav>
+
+    <main>
+      <div id="minus-cyl" class="tab-content active">
+        <button onclick="generateMinusCylinder()" class="regenerate-btn">Generate New Examples</button>
+        <div class="examples-container" id="minus-cyl-examples"></div>
+      </div>
+
+      <div id="plus-cyl" class="tab-content">
+        <button onclick="generatePlusCylinder()" class="regenerate-btn">Generate New Examples</button>
+        <div class="examples-container" id="plus-cyl-examples"></div>
+      </div>
+
+      <div id="spherical-equivalent" class="tab-content">
+        <button onclick="generateSphericalEquiv()" class="regenerate-btn">Generate New Examples</button>
+        <div class="examples-container" id="se-examples"></div>
+      </div>
+
+      <div id="cross-cyl" class="tab-content">
+        <button onclick="generateCrossCylinder()" class="regenerate-btn">Generate New Examples</button>
+        <div class="examples-container" id="cross-cyl-examples"></div>
+      </div>
+
+      <div id="toric" class="tab-content">
+        <button onclick="generateToric()" class="regenerate-btn">Generate New Examples</button>
+        <div class="examples-container" id="toric-examples"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="scripts.js"></script>
+</body>
+</html>
