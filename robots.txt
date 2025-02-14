@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://phantozweb.github.io/Transposition-Gen/sitemap.xml
