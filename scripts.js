@@ -388,6 +388,7 @@ let correctAnswers = 0;
 let incorrectAnswers = 0;
 let skippedAnswers = 0;
 let timerInterval;
+let incorrectAnswerHistory = [];
 
 function startTimer(seconds) {
   clearInterval(timerInterval);
@@ -416,6 +417,12 @@ function startTimer(seconds) {
       clearInterval(timerInterval);
       timerDiv.remove();
       displayQuizQuestion();
+      
+      // Re-enable buttons after new question is displayed
+      const revealBtn = document.getElementById('reveal-answer');
+      const submitBtn = document.getElementById('check-answer');
+      revealBtn.disabled = false;
+      submitBtn.disabled = false;
       return;
     }
 
@@ -428,10 +435,97 @@ function startTimer(seconds) {
   timerInterval = setInterval(updateTimer, 1000);
 }
 
+function revealAnswer() {
+  const revealBtn = document.getElementById('reveal-answer');
+  const submitBtn = document.getElementById('check-answer');
+  const userAnswer = document.getElementById('user-answer');
+
+  // Disable all interactive elements
+  revealBtn.disabled = true;
+  submitBtn.disabled = true;
+  userAnswer.disabled = true; // Disable input field
+
+  // If no answer was submitted, count as skip
+  if (!document.getElementById('feedback').textContent) {
+    skippedAnswers++;
+    totalAttempts++;
+    updateScoreDisplay();
+    
+    const feedback = document.getElementById('feedback');
+    feedback.innerHTML = `<div>Question skipped</div>`;
+    feedback.className = 'feedback skipped';
+  }
+
+  const answerReveal = document.getElementById('answer-reveal');
+  answerReveal.textContent = `Correct answer: ${formatAnswerExplanation(currentQuestion.type, currentQuestion.answer)}`;
+  answerReveal.classList.add('visible');
+
+  // Start the 15-second timer and enable buttons for next skip
+  startTimer(15);
+  
+  // Enable buttons after a short delay but keep input disabled
+  setTimeout(() => {
+    revealBtn.disabled = false;
+    submitBtn.disabled = false;
+  }, 300);
+}
+
+function displayQuizQuestion() {
+  clearInterval(timerInterval);
+  const existingTimer = document.getElementById('question-timer');
+  if (existingTimer) existingTimer.remove();
+
+  const { question, answer, type } = generateQuizQuestion();
+  currentQuestion = { question, answer, type };
+  
+  const userAnswer = document.getElementById('user-answer');
+  userAnswer.disabled = false; // Re-enable input field for new question
+  userAnswer.value = '';
+  
+  document.getElementById('question-type').textContent = question.type;
+  
+  let questionText = '';
+  if (type === 'crossToSphero') {
+    questionText = `${formatristolRx(question.rx.cross1)}\n${formatristolRx(question.rx.cross2)}`;
+  } else if (type === 'toric') {
+    const rxWithBC = {
+      sphere: question.rx.sphere,
+      cylinder: question.rx.cylinder,
+      axis: question.rx.axis,
+      baseCurve: question.rx.baseCurve
+    };
+    questionText = formatristolRx(rxWithBC);
+  } else if (type === 'opticCross') {
+    questionText = `
+      <div class="prescription">
+        <span style="color: #4CAF50">Vertical: ${formatNum(question.opticCross.vertical.power)}@${question.opticCross.vertical.axis}°</span><br>
+        <span style="color: #F44336">Horizontal: ${formatNum(question.opticCross.horizontal.power)}@${question.opticCross.horizontal.axis}°</span>
+      </div>
+      ${generateOpticCross(question.opticCross)}
+    `;
+  } else {
+    questionText = formatristolRx(question.rx);
+  }
+  
+  document.getElementById('quiz-question').innerHTML = questionText;
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('next-question').style.display = 'none';
+  document.getElementById('answer-reveal').classList.remove('visible');
+  
+  // Enable buttons when new question is displayed
+  const revealBtn = document.getElementById('reveal-answer');
+  const submitBtn = document.getElementById('check-answer');
+  revealBtn.disabled = false;
+  submitBtn.disabled = false;
+  
+  document.getElementById('user-answer').focus();
+}
+
 function updateScoreDisplay() {
   document.getElementById('score-details').innerHTML = `
     <div class="score-item correct">Correct: ${correctAnswers}</div>
-    <div class="score-item incorrect">Incorrect: ${incorrectAnswers}</div>
+    <div class="score-item incorrect" onclick="showIncorrectHistory()">Incorrect: ${incorrectAnswers}</div>
     <div class="score-item skipped">Skipped: ${skippedAnswers}</div>
     <div class="score-item total">Total: ${totalAttempts}</div>
   `;
@@ -554,6 +648,7 @@ function generateQuizQuestion() {
       // Generate random cross cylinder values
       const verticalPower = (-14 + Math.floor(Math.random() * 57) * 0.5).toFixed(2);
       const verticalAxis = Math.floor(Math.random() * 180);
+      
       const horizontalPower = (-14 + Math.floor(Math.random() * 57) * 0.5).toFixed(2);
       const horizontalAxis = (verticalAxis + 90) % 180;
 
@@ -602,17 +697,178 @@ function formatAnswerExplanation(type, answer) {
   }
 }
 
+function analyzeAnswer(userAnswer, correctAnswer, type) {
+  let details = '';
+  let mistakes = [];
+  
+  switch(type) {
+    case 'plusCylinder':
+    case 'minusCylinder':
+      const parsed = parseRx(userAnswer);
+      if (parsed) {
+        if (Math.abs(parsed.sphere - correctAnswer.sphere) > 0.01) {
+          mistakes.push(`Sphere value is incorrect (${formatNum(parsed.sphere)} instead of ${formatNum(correctAnswer.sphere)})`);
+        }
+        if (Math.abs(parsed.cylinder - correctAnswer.cylinder) > 0.01) {
+          mistakes.push(`Cylinder value is incorrect (${formatNum(parsed.cylinder)} instead of ${formatNum(correctAnswer.cylinder)})`);
+        }
+        if (parsed.axis !== correctAnswer.axis && Math.abs(parsed.axis - correctAnswer.axis) !== 180) {
+          mistakes.push(`Axis is incorrect (${parsed.axis}° instead of ${correctAnswer.axis}°)`);
+        }
+      } else {
+        mistakes.push(`Invalid format. Use format: sphere/cylinder×axis (e.g. +1.25/-2.00×180)`);
+      }
+      break;
+      
+    case 'sphericalEquivalent':
+      const userSE = parseFloat(userAnswer.replace('DS', ''));
+      if (isNaN(userSE)) {
+        mistakes.push(`Invalid format. Enter a number followed by DS (e.g. +1.50DS)`);
+      } else {
+        const difference = Math.abs(userSE - correctAnswer);
+        if (difference > 0.01) {
+          mistakes.push(`Calculation is off by ${formatNum(difference)}D`);
+          mistakes.push(`Your answer: ${formatNum(userSE)}DS`);
+          mistakes.push(`Correct answer: ${formatNum(correctAnswer)}DS`);
+        }
+      }
+      break;
+      
+    case 'crossCylinder':
+      const crossAnswers = correctAnswer;
+      const userCrosses = userAnswer.split('/').map(rx => parseRx(rx.trim()));
+      
+      if (userCrosses.length !== 2 || !userCrosses[0] || !userCrosses[1]) {
+        mistakes.push(`Invalid format. Enter two crossed cylinders separated by / (e.g. -2.00×180/-1.00×90)`);
+      } else {
+        if (!compareRx(userCrosses[0], crossAnswers[0])) {
+          mistakes.push(`First cross cylinder incorrect (${formatristolRx(userCrosses[0])} instead of ${formatristolRx(crossAnswers[0])})`);
+        }
+        if (!compareRx(userCrosses[1], crossAnswers[1])) {
+          mistakes.push(`Second cross cylinder incorrect (${formatristolRx(userCrosses[1])} instead of ${formatristolRx(crossAnswers[1])})`);
+        }
+      }
+      break;
+      
+    case 'crossToSphero':
+    case 'opticCross':  
+      const parsedSphero = parseRx(userAnswer);
+      const answer1 = correctAnswer;
+      const answer2 = {
+        sphere: answer1.sphere + answer1.cylinder,
+        cylinder: -answer1.cylinder,
+        axis: (answer1.axis + 90) % 180
+      };
+      
+      if (!parsedSphero) {
+        mistakes.push(`Invalid format. Use format: sphere/cylinder×axis (e.g. +1.25/-2.00×180)`);
+      } else if (!compareRx(parsedSphero, answer1) && !compareRx(parsedSphero, answer2)) {
+        mistakes.push(`Your answer: ${formatristolRx(parsedSphero)}`);
+        mistakes.push(`Possible correct answers:`);
+        mistakes.push(`1) ${formatristolRx(answer1)}`);
+        mistakes.push(`2) ${formatristolRx(answer2)}`);
+      }
+      break;
+      
+    case 'toric':
+      const toricFormat = /^([+-]?\d+\.?\d*)DS÷([+-]?\d+\.?\d*)×(\d+)\/([+-]?\d+\.?\d*)×(\d+)$/;
+      const toricMatch = userAnswer.match(toricFormat);
+      
+      if (!toricMatch) {
+        mistakes.push(`Invalid format. Use format: sphereDS÷baseCurve×axis/cylinder×axis`);
+        mistakes.push(`Example: +1.00DS÷-6.00×90/-2.00×180`);
+      } else {
+        const userToricSphere = parseFloat(toricMatch[1]);
+        const userBaseCurve = parseFloat(toricMatch[2]);
+        const userPowerAxis = parseInt(toricMatch[3]);
+        const userToricCyl = parseFloat(toricMatch[4]);
+        const userCylAxis = parseInt(toricMatch[5]);
+        
+        // Enhanced toric mistake analysis
+        if (Math.abs(userToricSphere - correctAnswer.sphere) > 0.01) {
+          const diff = (userToricSphere - correctAnswer.sphere).toFixed(2);
+          mistakes.push(`Toric sphere power calculation error:
+            • Your answer: ${formatNum(userToricSphere)}
+            • Correct value: ${formatNum(correctAnswer.sphere)}
+            • Difference: ${formatNum(diff)}
+            • Remember: Toric sphere = Spectacle sphere - Base curve`);
+        }
+        
+        if (Math.abs(userBaseCurve - correctAnswer.baseCurve) > 0.01) {
+          mistakes.push(`Base curve error:
+            • Your answer: ${formatNum(userBaseCurve)}
+            • Correct value: ${formatNum(correctAnswer.baseCurve)}
+            • Base curve should match the original prescription`);
+        }
+        
+        if (Math.abs(userToricCyl - correctAnswer.cylinder) > 0.01) {
+          const diff = (userToricCyl - correctAnswer.cylinder).toFixed(2);
+          mistakes.push(`Toric cylinder calculation error:
+            • Your answer: ${formatNum(userToricCyl)}
+            • Correct value: ${formatNum(correctAnswer.cylinder)}
+            • Difference: ${formatNum(diff)}
+            • Remember: Toric cylinder = Spectacle cylinder + Base curve`);
+        }
+        
+        if (userPowerAxis !== (correctAnswer.axis + 90) % 180) {
+          mistakes.push(`Power axis error:
+            • Your answer: ${userPowerAxis}°
+            • Correct value: ${(correctAnswer.axis + 90) % 180}°
+            • Remember: Power axis = Cylinder axis + 90°`);
+        }
+        
+        if (userCylAxis !== correctAnswer.axis) {
+          mistakes.push(`Cylinder axis error:
+            • Your answer: ${userCylAxis}°
+            • Correct value: ${correctAnswer.axis}°
+            • The cylinder axis should remain the same as the original prescription`);
+        }
+      }
+      break;
+  }
+  
+  if (mistakes.length > 0) {
+    details = '<strong>Analysis of mistakes:</strong><br>';
+    
+    if (type === 'toric') {
+      // For toric mistakes, add a formula reminder at the top
+      details += `
+        <div style="background: #e3f2fd; padding: 10px; border-radius: 8px; margin: 10px 0;">
+          <strong>Toric Formula Reminder:</strong><br>
+          • Toric sphere = Spectacle sphere - Base curve<br>
+          • Toric cylinder = Spectacle cylinder + Base curve<br>
+          • Power axis = Cylinder axis + 90°<br>
+          • Cylinder axis remains unchanged
+        </div>
+      `;
+    }
+    
+    details += mistakes.map(mistake => `
+      <div style="background: #fff3cd; padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #ffc107;">
+        ${mistake.replace(/\n/g, '<br>')}
+      </div>
+    `).join('');
+  } else {
+    details = 'Check your format and values carefully.';
+  }
+  
+  return details;
+}
+
 function checkAnswer() {
   const submitBtn = document.getElementById('check-answer');
   const revealBtn = document.getElementById('reveal-answer');
+  const userAnswer = document.getElementById('user-answer');
 
+  // Disable all interactive elements
   submitBtn.disabled = true;
   revealBtn.disabled = true;
+  userAnswer.disabled = true; // Disable input field
 
-  const userAnswer = document.getElementById('user-answer').value.trim();
+  const userAnswerText = userAnswer.value.trim();
 
   // Handle empty answer as skip
-  if (!userAnswer) {
+  if (!userAnswerText) {
     skippedAnswers++;
     totalAttempts++;
     updateScoreDisplay();
@@ -620,7 +876,6 @@ function checkAnswer() {
     const feedback = document.getElementById('feedback');
     feedback.innerHTML = `<div>Question skipped</div>`;
     feedback.className = 'feedback skipped';
-    
     revealAnswer();
     return;
   }
@@ -630,18 +885,18 @@ function checkAnswer() {
   switch(currentQuestion.type) {
     case 'plusCylinder':
     case 'minusCylinder':
-      const parsed = parseRx(userAnswer);
+      const parsed = parseRx(userAnswerText);
       isCorrect = compareRx(parsed, currentQuestion.answer);
       break;
       
     case 'sphericalEquivalent':
-      const userSE = parseFloat(userAnswer.replace('DS', ''));
+      const userSE = parseFloat(userAnswerText.replace('DS', ''));
       isCorrect = Math.abs(userSE - currentQuestion.answer) < 0.01;
       break;
       
     case 'crossCylinder':
       const crossAnswers = currentQuestion.answer;
-      const userCrosses = userAnswer.split('/').map(rx => parseRx(rx.trim()));
+      const userCrosses = userAnswerText.split('/').map(rx => parseRx(rx.trim()));
       isCorrect = userCrosses.length === 2 &&
                  compareRx(userCrosses[0], crossAnswers[0]) &&
                  compareRx(userCrosses[1], crossAnswers[1]);
@@ -649,7 +904,7 @@ function checkAnswer() {
       
     case 'crossToSphero':
     case 'opticCross':  
-      const parsedSphero = parseRx(userAnswer);
+      const parsedSphero = parseRx(userAnswerText);
       const answer1 = currentQuestion.answer;
       const answer2 = {
         sphere: answer1.sphere + answer1.cylinder,
@@ -661,7 +916,7 @@ function checkAnswer() {
       
     case 'toric':
       const toricFormat = /^[+-]?\d+\.?\d*DS÷[+-]?\d+\.?\d*×\d+\/[+-]?\d+\.?\d*×\d+$/;
-      isCorrect = toricFormat.test(userAnswer);
+      isCorrect = toricFormat.test(userAnswerText);
       break;
   }
   
@@ -671,18 +926,26 @@ function checkAnswer() {
     score++;
   } else {
     incorrectAnswers++;
+    incorrectAnswerHistory.push({
+      timestamp: new Date(),
+      questionType: currentQuestion.type,
+      question: currentQuestion.question,
+      correctAnswer: currentQuestion.answer,
+      userAnswer: userAnswerText,
+      mistakes: analyzeAnswer(userAnswerText, currentQuestion.answer, currentQuestion.type)
+    });
   }
   
   updateScoreDisplay();
   
   const feedback = document.getElementById('feedback');
   feedback.innerHTML = `
-    <div>${isCorrect ? 'Correct!' : 'Incorrect.'}</div>
-    ${!isCorrect ? `<div class="feedback-details">${analyzeAnswer(userAnswer, currentQuestion.answer, currentQuestion.type)}</div>` : ''}
+    <div class="feedback-header">${isCorrect ? 'Correct!' : 'Incorrect'}</div>
+    ${!isCorrect ? `<div class="feedback-details">${analyzeAnswer(userAnswerText, currentQuestion.answer, currentQuestion.type)}</div>` : ''}
   `;
   feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
   
-  if (!isCorrect || !userAnswer) {
+  if (!isCorrect || !userAnswerText) {
     revealAnswer();
     startTimer(15); // Start 15 second timer for incorrect answers
   } else {
@@ -691,69 +954,6 @@ function checkAnswer() {
   }
   
   document.getElementById('answer-reveal').classList.remove('visible');
-}
-
-function revealAnswer() {
-  const revealBtn = document.getElementById('reveal-answer');
-  const submitBtn = document.getElementById('check-answer');
-
-  revealBtn.disabled = true;
-  submitBtn.disabled = true;
-
-  // If no answer was submitted, count as skip
-  if (!document.getElementById('feedback').textContent) {
-    skippedAnswers++;
-    totalAttempts++;
-    updateScoreDisplay();
-    
-    const feedback = document.getElementById('feedback');
-    feedback.innerHTML = `<div>Question skipped</div>`;
-    feedback.className = 'feedback skipped';
-  }
-
-  const answerReveal = document.getElementById('answer-reveal');
-  answerReveal.textContent = `Correct answer: ${formatAnswerExplanation(currentQuestion.type, currentQuestion.answer)}`;
-  answerReveal.classList.add('visible');
-
-  // Start the 15-second timer
-  startTimer(15);
-}
-
-function analyzeAnswer(userAnswer, correctAnswer, type) {
-  let details = '';
-  
-  switch(type) {
-    case 'plusCylinder':
-    case 'minusCylinder':
-      const parsed = parseRx(userAnswer);
-      if (parsed) {
-        if (Math.abs(parsed.sphere - correctAnswer.sphere) > 0.01) {
-          details += `Sphere value is incorrect. You entered ${formatNum(parsed.sphere)}, should be ${formatNum(correctAnswer.sphere)}. `;
-        }
-        if (Math.abs(parsed.cylinder - correctAnswer.cylinder) > 0.01) {
-          details += `Cylinder value is incorrect. You entered ${formatNum(parsed.cylinder)}, should be ${formatNum(correctAnswer.cylinder)}. `;
-        }
-        if (parsed.axis !== correctAnswer.axis && Math.abs(parsed.axis - correctAnswer.axis) !== 180) {
-          details += `Axis is incorrect. You entered ${parsed.axis}°, should be ${correctAnswer.axis}°. `;
-        }
-      } else {
-        details = 'Invalid format. Use format: sphere/cylinder×axis (e.g. +1.25/-2.00×180)';
-      }
-      break;
-      
-    case 'sphericalEquivalent':
-      const userSE = parseFloat(userAnswer.replace('DS', ''));
-      if (isNaN(userSE)) {
-        details = 'Invalid format. Enter a number followed by DS (e.g. +1.50DS)';
-      } else {
-        details = `Your answer: ${formatNum(userSE)}DS, Correct answer: ${formatNum(correctAnswer)}DS`;
-      }
-      break;
-      
-    // Add similar analysis for other question types...
-  }
-  
-  return details || 'Check your format and values carefully.';
 }
 
 function parseRx(rxString) {
@@ -967,45 +1167,107 @@ document.addEventListener('DOMContentLoaded', () => {
   menuOverlay.addEventListener('click', handleMenuClose);
 });
 
-function displayQuizQuestion() {
-  clearInterval(timerInterval);
-  const existingTimer = document.getElementById('question-timer');
-  if (existingTimer) existingTimer.remove();
+document.addEventListener('DOMContentLoaded', () => {
+  const menuSections = document.querySelectorAll('.menu-section');
+  
+  menuSections.forEach(section => {
+    section.addEventListener('click', (e) => {
+      // Don't collapse if clicking on content
+      if (e.target.closest('.menu-section-content')) {
+        e.stopPropagation();
+        return;
+      }
+      
+      // Toggle current section
+      section.classList.toggle('expanded');
+      
+      // Collapse other sections
+      menuSections.forEach(otherSection => {
+        if (otherSection !== section) {
+          otherSection.classList.remove('expanded');
+        }
+      });
+      
+      // Scroll section into view if expanded
+      if (section.classList.contains('expanded')) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+  });
+});
 
-  const { question, answer, type } = generateQuizQuestion();
-  currentQuestion = { question, answer, type };
-  
-  document.getElementById('question-type').textContent = question.type;
-  
-  let questionText = '';
-  if (type === 'crossToSphero') {
-    questionText = `${formatristolRx(question.rx.cross1)}\n${formatristolRx(question.rx.cross2)}`;
-  } else if (type === 'toric') {
-    // Fix: Remove duplicate base curve display
-    const rxWithBC = {
-      sphere: question.rx.sphere,
-      cylinder: question.rx.cylinder,
-      axis: question.rx.axis,
-      baseCurve: question.rx.baseCurve
-    };
-    questionText = formatristolRx(rxWithBC);
-  } else if (type === 'opticCross') {
-    questionText = `
-      <div class="prescription">
-        <span style="color: #4CAF50">Vertical: ${formatNum(question.opticCross.vertical.power)}@${question.opticCross.vertical.axis}°</span><br>
-        <span style="color: #F44336">Horizontal: ${formatNum(question.opticCross.horizontal.power)}@${question.opticCross.horizontal.axis}°</span>
-      </div>
-      ${generateOpticCross(question.opticCross)}
-    `;
-  } else {
-    questionText = formatristolRx(question.rx);
+function showIncorrectHistory() {
+  if (incorrectAnswerHistory.length === 0) {
+    alert('No incorrect answers yet!');
+    return;
   }
-  
-  document.getElementById('quiz-question').innerHTML = questionText;
-  document.getElementById('user-answer').value = '';
-  document.getElementById('feedback').textContent = '';
-  document.getElementById('feedback').className = 'feedback';
-  document.getElementById('next-question').style.display = 'none';
-  document.getElementById('answer-reveal').classList.remove('visible');
-  document.getElementById('user-answer').focus();
+
+  const historyContent = incorrectAnswerHistory.map((item, index) => `
+    <div class="history-item">
+      <div class="history-header">
+        <span class="history-number">#${index + 1}</span>
+        <span class="history-type">${item.questionType}</span>
+        <span class="history-time">${new Date(item.timestamp).toLocaleTimeString()}</span>
+      </div>
+      <div class="history-question">
+        Question: ${formatHistoryQuestion(item.question, item.questionType)}
+      </div>
+      <div class="history-answers">
+        <div class="history-user-answer">Your answer: ${item.userAnswer}</div>
+        <div class="history-correct-answer">
+          Correct answer: ${formatAnswerExplanation(item.questionType, item.correctAnswer)}
+        </div>
+      </div>
+      <div class="history-mistakes">
+        ${item.mistakes}
+      </div>
+    </div>
+  `).join('');
+
+  const modal = document.createElement('div');
+  modal.className = 'history-modal';
+  modal.innerHTML = `
+    <div class="history-modal-content">
+      <div class="history-modal-header">
+        <h3>Incorrect Answer History</h3>
+        <button class="close-history">&times;</button>
+      </div>
+      <div class="history-modal-body">
+        ${historyContent}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Add event listeners
+  modal.querySelector('.close-history').addEventListener('click', () => {
+    modal.remove();
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  });
+}
+
+function formatHistoryQuestion(question, type) {
+  switch(type) {
+    case 'crossToSphero':
+      return `${formatristolRx(question.rx.cross1)}<br>${formatristolRx(question.rx.cross2)}`;
+    case 'toric':
+      const rxWithBC = {
+        sphere: question.rx.sphere,
+        cylinder: question.rx.cylinder,
+        axis: question.rx.axis,
+        baseCurve: question.rx.baseCurve
+      };
+      return formatristolRx(rxWithBC);
+    case 'opticCross':
+      return `Vertical: ${formatNum(question.opticCross.vertical.power)}@${question.opticCross.vertical.axis}°<br>
+              Horizontal: ${formatNum(question.opticCross.horizontal.power)}@${question.opticCross.horizontal.axis}°`;
+    default:
+      return formatristolRx(question.rx);
+  }
 }
