@@ -2,110 +2,244 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="google-site-verification" content="8ePqbhesJRBlrqrzbbYOKFnUD44_yRFjtuDuxsyLi2Q" />
-  <title>Transposition Gen by V. Janarthan</title>
+  <title>Transposition Gen V2</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="container">
-    <header>
-      <div class="header-content">
-        <h1>Transposition Gen</h1>
-        <div class="quiz-controls">
-          <a href="#quiz" class="practice-quiz-btn">
+    <div class="hamburger-menu">
+      <button class="menu-toggle">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <path fill="currentColor" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"/>
+        </svg>
+      </button>
+      <div class="menu-content">
+        <div class="menu-header">
+          <h3>Menu</h3>
+          <button class="close-menu">
             <svg viewBox="0 0 24 24" width="24" height="24">
-              <path fill="currentColor" d="M20,2H4C2.9,2,2,2.9,2,4v16c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4C22,2.9,21.1,2,20,2z M8,19H5v-2h3V19z M8,15H5v-2h3V15z M8,11H5V9h3V11z M14,19h-4v-2h4V19z M14,15h-4v-2h4V15z M14,11h-4V9h4V11z M19,19h-3v-2h3V19z M19,15h-3v-2h3V15z M19,11h-3V9h3V11z M19,7H5V5h14V7z"/>
+              <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
             </svg>
-            Practice Quiz
-          </a>
+          </button>
         </div>
-        <p class="author">by V. Janarthan</p>
-      </div>
-    </header>
-    <div class="tab-selector">
-      <div class="dropdown">
-        <select class="tab-dropdown">
-          <option value="minus-cyl">Minus Cylinder</option>
-          <option value="plus-cyl">Plus Cylinder</option>
-          <option value="spherical-equivalent">Spherical Equivalent</option>
-          <option value="cross-cyl">Sphero Cylinder into Cross Cylinder</option>
-          <option value="cross-to-sphero">Cross Cylinder to Sphero Cylinder</option>
-          <option value="toric">Toric Transposition</option>
-          <option value="optic-cross">Optic Cross</option>
-          <option value="quiz">Practice Quiz</option>
-        </select>
+        <nav>
+          <div class="menu-section">
+            <h4>Guide</h4>
+            <p>Transposition Gen V2 helps you practice and master various optical calculations:
+              
+              <strong>Minus Cylinder Conversion:</strong><br>
+              • Converts plus cylinder to minus cylinder notation<br>
+              • Uses formula: S₁ = S + C, C₁ = -C, A₁ = A + 90<br>
+              • Examples refresh with realistic prescription values<br><br>
+              
+              <strong>Plus Cylinder Conversion:</strong><br>
+              • Converts minus cylinder to plus cylinder notation<br>
+              • Uses formula: S₁ = S + C, C₁ = -C, A₁ = A - 90<br>
+              • Interactive cards with hover effects<br><br>
+              
+              <strong>Spherical Equivalent:</strong><br>
+              • Calculates SE using formula: SE = S + C/2<br>
+              • Shows conversion from spherocylindrical to spherical power<br>
+              • Helps understand overall refractive power<br><br>
+              
+              <strong>Cross Cylinder:</strong><br>
+              • Breaks down spherocylindrical into two cross cylinders<br>
+              • Shows power and axis for each cylinder<br>
+              • Includes visual optic cross diagrams<br><br>
+              
+              <strong>Cross to Spherocylinder:</strong><br>
+              • Combines two cross cylinders into spherocylindrical form<br>
+              • Demonstrates vector addition of cylindrical powers<br>
+              • Real-time calculations with visual feedback<br><br>
+              
+              <strong>Toric Transposition:</strong><br>
+              • Converts spectacle Rx to contact lens parameters<br>
+              • Accounts for base curve in calculations<br>
+              • Shows power and axis changes<br><br>
+              
+              <strong>Optic Cross:</strong><br>
+              • Visual representation of cylinder powers<br>
+              • Interactive diagrams showing power axes<br>
+              • Color-coded for easy understanding<br><br>
+              
+              <strong>Practice Quiz:</strong><br>
+              • Tests knowledge across all conversion types<br>
+              • Provides immediate feedback<br>
+              • Tracks correct, incorrect, and skipped answers<br>
+              • Option to reveal correct answers<br><br>
+              
+              <strong>Features:</strong><br>
+              • Regenerate new examples anytime<br>
+              • Mobile-friendly interface<br>
+              • Interactive hover effects<br>
+              • Clear visual feedback<br>
+              • Progress tracking in quiz mode
+            </p>
+          </div>
+          <div class="menu-section">
+            <h4>Latest Updates</h4>
+            <p>
+              <strong>Bug Fixes:</strong><br>
+              • Fixed format error for Cross Cylinder to Sphero Cylinder answers<br>
+              • Fixed format error for Optic Cross answers<br>
+              • Now showing both possible answers for these conversions<br>
+              • Fixed duplicate base curve display in toric transposition quiz<br><br>
+              
+              <strong>UI Improvements:</strong><br>
+              • Clear distinction between questions and answers<br>
+              • Full-width responsive layout<br>
+              • Enhanced readability with new typography<br>
+              • Added countdown timer for answer review<br><br>
+              
+              <strong>Quiz Enhancements:</strong><br>
+              • Added Optic Cross questions to practice quiz<br>
+              • Improved answer checking system<br>
+              • Added reveal answer functionality with timer<br>
+              • Time to review incorrect answers (15 seconds)<br>
+              • Quick progression for correct answers (2 seconds)<br><br>
+              
+              <strong>General Improvements:</strong><br>
+              • Better feedback for incorrect answers<br>
+              • Clearer formatting instructions<br>
+              • More intuitive answer input<br>
+              • Smoother transitions between questions
+            </p>
+          </div>
+          <div class="menu-section">
+            <h4>Format Guide</h4>
+            <p>
+              <strong>Basic Format:</strong><br>
+              sphere/cylinder×axis<br>
+              Example: +1.25/-2.00×180<br><br>
+              
+              <strong>Spherical Equivalent:</strong><br>
+              Number followed by DS<br>
+              Example: +1.50DS<br><br>
+              
+              <strong>Cross Cylinders:</strong><br>
+              Two cylinders separated by /<br>
+              Example: -2.00×180/-1.00×90<br><br>
+              
+              <strong>Toric Format:</strong><br>
+              sphere DS÷base curve×axis/cylinder×axis<br>
+              Example: +1.00DS÷-6.00×90/-2.00×180<br><br>
+              
+              <strong>Tips:</strong><br>
+              • Always include + or - signs<br>
+              • Use decimal points (.)<br>
+              • Use × symbol for axis<br>
+              • Round to 2 decimal places
+            </p>
+          </div>
+          <div class="menu-section">
+            <h4>How It Helps</h4>
+            <p>Practice and master optical transpositions with instant feedback and interactive examples.</p>
+          </div>
+          <div class="menu-section">
+            <h4>Contact & About</h4>
+            <p>Created by V. Janarthan<br>
+            For feedback and suggestions:<br>
+            Email: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d7b4b8b9a3b6b4a397a3a5b6b9a4a7b8a4bea3beb8b9b0b2b9f9b4b8ba">[email&#160;protected]</a></p>
+          </div>
+        </nav>
       </div>
     </div>
+    <div class="menu-overlay"></div>
 
-    <main>
-      <div id="minus-cyl" class="tab-content active">
-        <button onclick="generateMinusCylinder()" class="regenerate-btn">Generate New Examples</button>
-        <div class="examples-container" id="minus-cyl-examples"></div>
-      </div>
-
-      <div id="plus-cyl" class="tab-content">
-        <button onclick="generatePlusCylinder()" class="regenerate-btn">Generate New Examples</button>
-        <div class="examples-container" id="plus-cyl-examples"></div>
-      </div>
-
-      <div id="spherical-equivalent" class="tab-content">
-        <button onclick="generateSphericalEquiv()" class="regenerate-btn">Generate New Examples</button>
-        <div class="examples-container" id="se-examples"></div>
-      </div>
-
-      <div id="cross-cyl" class="tab-content">
-        <button onclick="generateCrossCylinder()" class="regenerate-btn">Generate New Examples</button>
-        <div class="examples-container" id="cross-cyl-examples"></div>
-      </div>
-
-      <div id="cross-to-sphero" class="tab-content">
-        <button onclick="generateCrossToSphero()" class="regenerate-btn">Generate New Examples</button>
-        <div class="examples-container" id="cross-to-sphero-examples"></div>
-      </div>
-
-      <div id="toric" class="tab-content">
-        <button onclick="generateToric()" class="regenerate-btn">Generate New Examples</button>
-        <div class="examples-container" id="toric-examples"></div>
-      </div>
-
-      <div id="optic-cross" class="tab-content">
-        <button onclick="generateOpticCrossExamples()" class="regenerate-btn">Generate New Examples</button>
-        <div class="examples-container" id="optic-cross-examples"></div>
-      </div>
-
-      <div id="quiz" class="tab-content">
-        <div class="quiz-container">
-          <div class="score-display" id="score-details">
-            <div class="score-item correct">Correct: 0</div>
-            <div class="score-item incorrect">Incorrect: 0</div>
-            <div class="score-item skipped">Skipped: 0</div>
-            <div class="score-item total">Total: 0</div>
-          </div>
-          <div class="quiz-card">
-            <div class="question-type" id="question-type"></div>
-            <div class="prescription" id="quiz-question"></div>
-            <div class="answer-input">
-              <input type="text" id="user-answer" placeholder="Enter your answer (e.g. +1.25/-2.00×180)" />
-              <button id="check-answer" class="submit-btn">Check Answer</button>
-            </div>
-            <div id="feedback" class="feedback"></div>
-            <div class="button-group">
-              <button id="reveal-answer" class="hint-btn" title="Show Answer">
-                <svg viewBox="0 0 24 24" width="24" height="24">
-                  <path fill="currentColor" d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/>
-                </svg>
-              </button>
-              <button id="next-question" class="next-btn" style="display:none">Next Question</button>
-            </div>
-            <div id="answer-reveal" class="answer-reveal"></div>
-          </div>
+    <div class="main-content">
+      <h1 class="main-title">Transposition Gen V2</h1>
+      <div class="tab-selector">
+        <div class="dropdown">
+          <select class="tab-dropdown">
+            <option value="minus-cyl">Minus Cylinder</option>
+            <option value="plus-cyl">Plus Cylinder</option>
+            <option value="spherical-equivalent">Spherical Equivalent</option>
+            <option value="cross-cyl">Sphero Cylinder into Cross Cylinder</option>
+            <option value="cross-to-sphero">Cross Cylinder to Sphero Cylinder</option>
+            <option value="toric">Toric Transposition</option>
+            <option value="optic-cross">Optic Cross</option>
+            <option value="quiz">Practice Quiz</option>
+          </select>
         </div>
       </div>
-    </main>
-  </div>
 
-  <script src="scripts.js"></script>
+      <main>
+        <div id="minus-cyl" class="tab-content active">
+          <button onclick="generateMinusCylinder()" class="regenerate-btn">Generate New Examples</button>
+          <div class="examples-container" id="minus-cyl-examples"></div>
+        </div>
+
+        <div id="plus-cyl" class="tab-content">
+          <button onclick="generatePlusCylinder()" class="regenerate-btn">Generate New Examples</button>
+          <div class="examples-container" id="plus-cyl-examples"></div>
+        </div>
+
+        <div id="spherical-equivalent" class="tab-content">
+          <button onclick="generateSphericalEquiv()" class="regenerate-btn">Generate New Examples</button>
+          <div class="examples-container" id="se-examples"></div>
+        </div>
+
+        <div id="cross-cyl" class="tab-content">
+          <button onclick="generateCrossCylinder()" class="regenerate-btn">Generate New Examples</button>
+          <div class="examples-container" id="cross-cyl-examples"></div>
+        </div>
+
+        <div id="cross-to-sphero" class="tab-content">
+          <button onclick="generateCrossToSphero()" class="regenerate-btn">Generate New Examples</button>
+          <div class="examples-container" id="cross-to-sphero-examples"></div>
+        </div>
+
+        <div id="toric" class="tab-content">
+          <button onclick="generateToric()" class="regenerate-btn">Generate New Examples</button>
+          <div class="examples-container" id="toric-examples"></div>
+        </div>
+
+        <div id="optic-cross" class="tab-content">
+          <button onclick="generateOpticCrossExamples()" class="regenerate-btn">Generate New Examples</button>
+          <div class="examples-container" id="optic-cross-examples"></div>
+        </div>
+
+        <div id="quiz" class="tab-content">
+          <div class="quiz-container">
+            <div class="score-display" id="score-details">
+              <div class="score-item correct">Correct: 0</div>
+              <div class="score-item incorrect">Incorrect: 0</div>
+              <div class="score-item skipped">Skipped: 0</div>
+              <div class="score-item total">Total: 0</div>
+            </div>
+            <div class="quiz-card">
+              <div class="question-type" id="question-type"></div>
+              <div class="quiz-question">
+                <div class="prescription" id="quiz-question"></div>
+              </div>
+              <div class="answer-section">
+                <div class="answer-input">
+                  <input type="text" id="user-answer" placeholder="Enter your answer (e.g. +1.25/-2.00×180)" />
+                  <button id="check-answer" class="submit-btn">Check Answer</button>
+                </div>
+                <div id="feedback" class="feedback"></div>
+                <div class="button-group">
+                  <button id="reveal-answer" class="hint-btn" title="Show Answer">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                      <path fill="currentColor" d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/>
+                    </svg>
+                  </button>
+                  <button id="next-question" class="next-btn" style="display:none">Next Question</button>
+                </div>
+              </div>
+              <div id="answer-reveal" class="answer-reveal"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <footer class="footer">
+    Made by <a href="https://www.linkedin.com/in/janarthan-v-293272316" target="_blank" rel="noopener">V. Janarthan</a>
+  </footer>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="scripts.js"></script>
   <script>
     document.getElementById('reveal-answer').addEventListener('click', revealAnswer);
   </script>

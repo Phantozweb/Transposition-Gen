@@ -1,24 +1,4 @@
-const original = {
-  sphere: parseFloat(sphere),
-  cylinder: parseFloat(cylinder),
-  axis: axis,
-  baseCurve: parseFloat(baseCurve)
-};
-
-// Compute toric parameters
-const toric = {
-  baseCurve: original.baseCurve,
-  sphere: original.sphere - original.baseCurve,
-  cylinder: original.cylinder,
-  axis: original.axis
-};
-toric.sphere = parseFloat(toric.sphere.toFixed(2));
-
-return `
-  <div class="card">
-    <div class="prescription">
-      ${formatRx(original)} (B.C=${original.baseCurve.toFixed(2)})<br>
-      → ${formatRx(toric)}
-    </div>
-  </div>
-`;
+if (!isCorrect || !userAnswer) {
+  revealAnswer();
+  startTimer(); // Start the timer after showing the answer
+}
